@@ -1,6 +1,7 @@
 # JavaNote
 
 - [java基础](javanote/README.md)
+- [吐血系列](crazy/README.md)
 - [lc](算法/lc.md)
 - [剑指offer](算法/剑指offer.md)
 - [个人刷熟题](算法/个人刷熟题.md)
@@ -13,9 +14,9 @@
 
 # CSNotes
 
-[CSNotes](csnotes/README.md)
+- [CSNotes](csnotes/README.md)
 
 # Java-Notes
 
-[Java-Notes](Java-Notes/README.md)
+- [Java-Notes](Java-Notes/README.md)
 

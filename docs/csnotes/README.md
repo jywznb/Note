@@ -10,7 +10,7 @@
 - [计算机操作系统](csnotes/计算机操作系统.md)
 - [Linux](csnotes/Linux.md)
 
-# :cloud: 网络 
+# 网络
 
 - [计算机网络](csnotes/计算机网络.md)
 - [HTTP](csnotes/HTTP.md)
