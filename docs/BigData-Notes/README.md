@@ -1,55 +1,3 @@
-# BigData-Notes
-
-
-
-<div align="center"> <img width="444px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/bigdata-notes-icon.png"/> </div>
-<br/>
-
-**大数据入门指南**
-
-
-
-<table>
-    <tr>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/hadoop.jpg"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/hive.jpg"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/spark.jpg"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/storm.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/flink.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/hbase.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/kafka.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/zookeeper.jpg"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/flume.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/sqoop.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/azkaban.png"></th>
-      <th><img width="50px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/scala.jpg"></th>
-    </tr>
-    <tr>
-      <td align="center"><a href="#一hadoop">Hadoop</a></td>
-      <td align="center"><a href="#二hive">Hive</a></td>
-      <td align="center"><a href="#三spark">Spark</a></td>
-      <td align="center"><a href="#四storm">Storm</a></td>
-      <td align="center"><a href="#五flink">Flink</a></td>
-      <td align="center"><a href="#六hbase">HBase</a></td>
-      <td align="center"><a href="#七kafka">Kafka</a></td>
-      <td align="center"><a href="#八zookeeper">Zookeeper</a></td>
-      <td align="center"><a href="#九flume">Flume</a></td>
-      <td align="center"><a href="#十sqoop">Sqoop</a></td>
-      <td align="center"><a href="#十一azkaban">Azkaban</a></td>
-      <td align="center"><a href="#十二scala">Scala</a></td>
-    </tr>
-  </table>
-<br/>
-
-<div align="center">
-	<a href = "https://github.com/heibaiying/Full-Stack-Notes"> 
-	<img width="150px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/weixin.jpg"/> 
-	</a> 
-</div>
-<div align="center"> <strong> 如果需要离线阅读，可以在公众号上发送 “bigdata” 获取《大数据入门指南》离线阅读版！ </strong> </div>
-
-<br/>
-
 ## 前  言
 
 1. [大数据学习路线](BigData-Notes/大数据学习路线.md)
@@ -199,15 +147,8 @@
 
 <br>
 
-## :bookmark_tabs: 后  记
+## 后  记
 
 [资料分享与开发工具推荐](notes/资料分享与工具推荐.md)
 
 <br>
-
-<div align="center">
-	<a href = "https://blog.csdn.net/m0_37809146"> 
-	<img width="200px" src="https://gitee.com/heibaiying/BigData-Notes/raw/master/pictures/blog-logo.png"/> 
-	</a> 
-</div>
-<div align="center"> <a  href = "https://blog.csdn.net/m0_37809146"> 欢迎关注我的博客：https://blog.csdn.net/m0_37809146</a> </div>

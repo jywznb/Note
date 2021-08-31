@@ -23,3 +23,7 @@
 # BigData-Notes
 
 - [BigData-Notes](BigData-Notes/README.md)
+
+# God-Of-BigData
+
+- [God-Of-BigData](God-Of-BigData/README.md)
