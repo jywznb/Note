@@ -1,6 +1,7 @@
 # JavaNote
 
 - [java基础](javanote/README.md)
+- [文章](javanote/文章.md)
 - [吐血系列](crazy/README.md)
 - [lc](算法/lc.md)
 - [剑指offer](算法/剑指offer.md)
@@ -27,3 +28,11 @@
 # God-Of-BigData
 
 - [God-Of-BigData](God-Of-BigData/README.md)
+
+# 杭研
+
+[数据湖](杭研/README.md)
+
+# 海量数据处理
+
+[海量数据处理](海量数据处理.md)
