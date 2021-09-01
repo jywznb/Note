@@ -78,3 +78,105 @@ public class Main{
 # 小米
 
 # 华为
+
+```java
+import java.util.*;
+// We have imported the necessary tool classes.
+// If you need to import additional packages or classes, please import here.
+
+
+public class Main {
+  static int n;
+  static int[] A, B;
+  static int mi = (int)1e9;
+
+  public static void dfs(int pos, int op, int a, int b) {
+    if (pos > n) return;
+    //System.out.println(pos + " " + op + " " + a + " " + b);
+
+    if (pos == n)
+    {
+      if (mi > a + b) mi = a + b;
+      return;
+    }
+    if (op == 1)
+    {
+      // use
+      int zf1 = Math.min(a, A[pos + 1]);
+      int res1 = Math.min(a - zf1, B[pos + 1]);
+      res1 = Math.min(res1 + b , A[pos + 1]);
+      //System.out.println(A[pos] + " " + B[pos + 1]);
+      //System.out.println(zf1 + " " + res1);
+      dfs(pos + 1, 1, zf1, res1);
+
+      //nouse
+      dfs(pos + 1, 0, a, b);
+
+
+    }
+    else{
+      // use
+      int zf1 = Math.min(a, A[pos + 1]);
+      int res1 = Math.min(a - zf1, B[pos + 1]);
+      res1 = Math.min(res1 + b, A[pos + 1]);
+      dfs(pos + 1, 1, zf1, res1);
+
+    }
+
+
+  }
+
+
+  public static void main(String[] args) {
+    // please define the JAVA input here. For example: Scanner s = new Scanner(System.in);
+    // please finish the function body here.
+    // please define the JAVA output here. For example: System.out.println(s.nextInt());
+
+
+    Scanner sc = new Scanner(System.in);
+    n = sc.nextInt();
+    A = new int[n + 1]; B = new int[n + 2];
+    for (int i = 1; i <= n; i++)
+    {
+      String s = sc.next();
+      String[] t = s.split(",");
+      int x = Integer.parseInt(t[0]), y = Integer.parseInt(t[1]);
+      A[i] = x;
+      B[i] = y;
+    }
+    int val = sc.nextInt();
+    dfs(0, 1, val, 0);
+    System.out.println(mi);
+      /*
+    int mi = (int)1e9;
+    if (n == 1)
+    {
+        n = 2;
+        a[2] = a[1];
+        b[2] = b[1];
+    }
+
+    for (int i = 1; i <= n; i++)
+    {
+      for (int j = i + 1; j <= n; j++)
+      {
+        int x = val, y = 0;
+        int zf1 = Math.min(x, a[i]), res1 = Math.min(x - zf1, b[i]);
+        int zf2 = Math.min(zf1, a[j]), res2 = Math.min(zf1 - zf2, b[j]);
+        int zf3 = Math.min(res1, a[i]);
+        int res3 = Math.min(zf3 + res2, a[j]);
+        mi = Math.min(mi, res3 + zf2);
+          //if (res3 + zf2 == 15) System.out.println(i + " " + j);
+      }
+    }
+    System.out.println(mi);
+   */
+  }
+}
+/*
+2
+50,60 30,25
+120
+ */
+```
+
