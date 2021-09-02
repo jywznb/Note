@@ -1,6 +1,6 @@
 # 算法
 
-- [剑指 Offer 题解](csnotes/剑指%20Offer%20题解.md)
+- [剑指 Offer 题解](csnotes/剑指%20offer%20题解.md)
 - [Leetcode 题解](csnotes/Leetcode%20题解.md)
 - [算法](csnotes/算法%20-%20目录.md)
 - [字节跳动内推](assets/内推.md)
