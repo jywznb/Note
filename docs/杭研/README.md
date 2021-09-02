@@ -3,4 +3,5 @@
 - [流批一体的实时数仓 arctic](杭研/流批一体的实时数仓arctic.md)
 - [Arctic异步Compaction功能设计](杭研/Arctic异步Compaction功能设计.md)
 - [EasyLake用户手册](杭研/EasyLake用户手册.md)
+- [实习工作](杭研/实习工作.md)
 
