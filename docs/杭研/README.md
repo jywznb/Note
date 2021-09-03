@@ -4,4 +4,5 @@
 - [Arctic异步Compaction功能设计](杭研/Arctic异步Compaction功能设计.md)
 - [EasyLake用户手册](杭研/EasyLake用户手册.md)
 - [实习工作](杭研/实习工作.md)
+- [大数据组件整理](杭研/大数据组件整理.md)
 
