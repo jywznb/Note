@@ -12,7 +12,7 @@
 
 第一 kudu 作为支持 upsert 的列存引擎，是实时数仓的不二选型，但是在实践过程中，我们遇到了下面的问题：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image002.jpg)
+![1](picture/1.png)
 
 如上图所示，kudu 通过 append 方式写入 upsert，以支持高效和低延迟的写，再通过激进的 compaction 将 base 数据和 delta 数据合并，以支持低延迟的读，否则读过程需要合并一行数据的大量版本，性能上无法接受，kudu 的 PDT 结构本质上是通过 compaction 来平衡写延迟和读延迟，而 kudu 本身定位是 HTAP 系统，读写都需要提供毫秒级读延迟，随着写请求增多，compaction 会带来剧烈的 CPU 和 IO 消耗，表现在线上则是经常有营销活动，性能测试等不可控因素把 kudu 打爆，且因为激进 compaction 带来的写放大问题，带来的成本也急剧上升，而我们必须为一些不可控的因素为 kudu 留下充足的 buffer，就像我们对待数据库一样，再加上 kudu 做不到存算分离，而我们在部署 kudu 时，也无法利用 HDFS 的资源池，这里我想要强调的是高成本问题和 SLA 缓冲能力。最后一点，则是 kudu 在数仓体系中是作为数据孤岛存在，我们无法用 kudu 实现 ODS，DWD 以及 DWS 的实时串联，在实时数仓中，我们必须用 kafka 存储流式数据，最终的表现是流表和批表的不统一，为数据资产，数据质量，数据血缘等领域的批流融合带来了困难。
 
@@ -24,11 +24,11 @@
 
 在 arctic 之上，提出实时数仓的“三体”战略：
 
-\1.   流批一体：做到计算的流批一体，支持 flink，spark 在流批场景下的统一应用，flink 任务也可以用在批计算场景，spark 任务也可以转变为实时任务；做到存储的流批一体，流表和批表共用存储，使用一张表，既可以做批计算，也可以向下游实时推送变更消息，或者查询某个时段内的历史变更；做到[产品的流批一体](https://docs.qq.com/doc/DR3J6QkJ5WW9uR0Vp)，支持数据同步，数据资产，数据血缘，数据质量等模块的流批统一治理。
+1. 流批一体：做到计算的流批一体，支持 flink，spark 在流批场景下的统一应用，flink 任务也可以用在批计算场景，spark 任务也可以转变为实时任务；做到存储的流批一体，流表和批表共用存储，使用一张表，既可以做批计算，也可以向下游实时推送变更消息，或者查询某个时段内的历史变更；做到[产品的流批一体](https://docs.qq.com/doc/DR3J6QkJ5WW9uR0Vp)，支持数据同步，数据资产，数据血缘，数据质量等模块的流批统一治理。
 
-\2.   湖仓一体：通过支持 upsert，做到分钟级别数据延迟，兼容 parquet，orc 等高性能的列存格式，将 95% 以上的数仓 AP 场景保留在数据湖中，尽量少地引入 kudu，clickhouse，druid 等数据孤岛
+2. 湖仓一体：通过支持 upsert，做到分钟级别数据延迟，兼容 parquet，orc 等高性能的列存格式，将 95% 以上的数仓 AP 场景保留在数据湖中，尽量少地引入 kudu，clickhouse，druid 等数据孤岛
 
-\3.   库仓一体：通过 NDC 的数据库自动入湖功能，实现业务中台和数据中台在数据库上的权限解耦，依赖解耦，做到数据库 DDL 变更自动同步到数据中台的元数据中心，依赖无感知的数据入湖，业务使用数据库同步的 ODS 数据时，体验上与访问数据库相同，且在数据库的访问上做到流批一体：通过 flink 或 spark 既可以定义全量数据上的 SQL，也可以定义流式/增量数据上的 SQL。
+3. 库仓一体：通过 NDC 的数据库自动入湖功能，实现业务中台和数据中台在数据库上的权限解耦，依赖解耦，做到数据库 DDL 变更自动同步到数据中台的元数据中心，依赖无感知的数据入湖，业务使用数据库同步的 ODS 数据时，体验上与访问数据库相同，且在数据库的访问上做到流批一体：通过 flink 或 spark 既可以定义全量数据上的 SQL，也可以定义流式/增量数据上的 SQL。
 
 ## Goals
 
@@ -53,7 +53,7 @@
 
 典型代表是 2018 年开始数科为考拉提供的准实时同步 hive 功能，如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image004.jpg)
+![1](picture/2.png)
 
 核心思路是通过 NDC 的数据同步将 DDB 或 mysql binlog 实时传输到 hive 增量表中，再定时调度一个 mapreduce 任务执行 base 表和 stage（增量）表的合并，stage 表本身也可以作为一个数仓表使用，表中除了业务字段外，还会记录数据操作类型，操作时间。
 
@@ -65,23 +65,23 @@
 
 hive3.0，deltalake，iceberg 在 upsert 的设计上基本思路一致，以 iceberg 为例，iceberg 将 update 转化为 delete + insert 两步操作，insert 是表中添加 insertion file，这是 iceberg 已经具备的功能，那么 upsert 欠缺的只有行级别的 delete 功能，在 iceberg 10月发布的 v0.9.1 还未发布这项功能，从设计文档到现在已经有一年多，目前由 netflix，cloudera 工程师主导，腾讯阿里参与，设计文档参考：[merge on read for iceberg](https://docs.google.com/document/d/1FMKh_SQ6xSUUmoCA8LerTkzIxDUN5JbStQp5Hzot4eo/edit#heading=h.p74qmh3a6ets)，[MERGE INTO 设计](https://docs.google.com/document/d/1W1niaD0X5jV7r5uIp380ZfTW8sL5fL2fy176aoaHCj8/edit)，这里有必要说明一下 merge on read 与 row delete 关系，merge on read 的含义使用 append 方式定义 row delete，并且在读时将 delete 文件与数据文件合并，形成正确的视图，merge on read 解释了 row delete 的高效性，因为在 delete 时没有发生文件 overwrite。如下图所示，每个操作构成了独立的快照，deletion file 落在不同的快照中：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image006.jpg)
+![1](picture/3.png)
 
 iceberg delete 功能又分为 positional delete 和 value delete，前者要求删除时找到要删除数据所在的文件和位置，在 deletion 文件中记录下数据位置以标记删除，后者只在 deletion 文件中记录要删除的条件，在 merge 时才去 scan 数据，iceberg upsert 高效性体现在 scan 数据时高效的剪枝（prune[[t3\]](#_msocom_3) ）能力。
 
 Delta 提供面向复杂条件的 SQL 和 API，参考 [deltalake doc](https://docs.databricks.com/delta/delta-update.html)，deltalake 实现 upsert 原理是在 spark 中先 scan 数据找到更新或删除的数据所在文件，在操作所处的事务日志中标记文件被删除，并将更新后的文件落盘，在事务日志中记录新增文件，下面这张图很好地解释了 deltalake delete 过程：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image008.jpg)
+![1](picture/4.png)
 
 原图和讲解参考 [delta-lake-delete-implementation](https://developpaper.com/delta-lake-delete-implementation/)，红色部分为标记删除，紫色部分是 match 数据删除后的文件，该文件以 add 方式记录在这个操作所在的 transaction log 中。
 
 相比 iceberg，delta 成熟度高很多，iceberg 的 MERGE INTO 功能还处于孵化阶段，离真正实现可能还很远，SQL功能更加遥不可及，而 delta lake 已经在 SQL 和 API 上同时支持了 merge 语法，比如通过下面的 SQL 可以实现两张表的合并：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image010.jpg)
+![1](picture/5.png)
 
 我们可以直接使用 delta 的 merge 语法实现增量表和全量表的合并，如果 NDC 支持同步 delta lake，可以直接用这套 merge 功能实现更加高效的合并，与传统 MR 任务相比，delta 的 merge SQL 性能优势体现在可以将较少的数据量广播到大表算子中。在增量表小，存量数据体量很大的情况下，可以带来可观的性能提升。值得一提的是，使用计算引擎实现没有 shuffle 的 merge 需要上层做很多事情，下图很好说明了这一点（[原文链接](https://databricks.com/blog/2019/03/19/efficient-upserts-into-data-lakes-databricks-delta.html)）：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image012.jpg)
+![1](picture/6.png)
 
 论成熟度，delta 远超 iceberg，但是 delta 作为 databricks 的商业化产品，开放度比 iceberg 低很多，对 flink 不友好，两者对大体量数据实时摄取支持都很弱，**在 upsert 功能上**没有流批一体，上层依然要自己实现增量表和全量表的分离，再通过 merge 的方式将增量数据 upsert 到全量数据中，而 merge 的性能尽管得到了大幅提升，依然会给数据带来延迟。
 
@@ -99,7 +99,7 @@ arctic 首先要解决的是面向主键的 upsert 问题
 
 在上文中，我们讨论了 delta，iceberg，hive3.0 在实时摄取，流批一体，数据延迟上的不足，第三阶段的 arctic 是为大体量的实时数据摄取而生，无论是 upsert 场景还是 append 场景，批表和流表都共用一个表，向不同的场景提供流和批 API，与 iceberg 定位 table format 明显不同的是，arctic 在 iceberg 基础上，既定义了流批一体的 format，也提供了治理相关的服务，如文件合并，各类 metrics 展示，人工治理等，我们通过下图说明 arctic 的核心原理：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image014.jpg)
+![1](picture/7.png)
 
 arctic 将表空间分为两层，上层为 change table，记录了表在多次提交（事务）中的变更历史，类似于 mysql binlog，数据通过 flink/spark streaming 实时摄取直接进入 change table，相比下层的 base table，change table 附加了 _action 和 _ts 列表示数据变更类型和进入时间戳，以订单表为例，base table 和 change table 的区别如下图所示：
 
@@ -117,17 +117,17 @@ arctic 的设计围绕实时 ingestion 产生的 change table，以此实现 ups
 
 在定位上，arctic 与 [hudi](https://hudi.apache.org/) 存在一定重叠，hudi 也是流批一体的数仓系统，提供 incremental pull，upsert，compaction，merge on read 等功能，我们主要考虑：
 
-\1.   hudi 生态不开放，代码与 spark 绑死，支持 flink 相当于做一遍整体的项目重构，虽然社区有 PR，但是推进缓慢，落地风险不可控
+1. hudi 生态不开放，代码与 spark 绑死，支持 flink 相当于做一遍整体的项目重构，虽然社区有 PR，但是推进缓慢，落地风险不可控
 
-\2.   hudi 依赖第三方索引来实现高性能摄取与合并，目前有 bloom index 和 hbase index，使用 spark 微批方式摄取，bloom index 在实时数据离散分布的情况下，可以造成被打穿的情况，[[t4\]](#_msocom_4) [[t5\]](#_msocom_5) 实时性打折扣，hbase 需要独立部署运维，给 ingestion 带来性能和可用性风险，且 hudi 的 key 到文件的索引不能变化，无法伸缩，对热点问题无解，arctic 的文件索引更加轻量，ingestion 事件驱动，不引入第三方依赖，且支持自动分裂，可以实现热点均衡
+2. hudi 依赖第三方索引来实现高性能摄取与合并，目前有 bloom index 和 hbase index，使用 spark 微批方式摄取，bloom index 在实时数据离散分布的情况下，可以造成被打穿的情况，[[t4\]](#_msocom_4) [[t5\]](#_msocom_5) 实时性打折扣，hbase 需要独立部署运维，给 ingestion 带来性能和可用性风险，且 hudi 的 key 到文件的索引不能变化，无法伸缩，对热点问题无解，arctic 的文件索引更加轻量，ingestion 事件驱动，不引入第三方依赖，且支持自动分裂，可以实现热点均衡
 
-\3.   业界对 hudi 的定位与 delta，iceberg 平级，我们对 arctic 定位在更上层，可以与 delta，iceberg 集成
+3. 业界对 hudi 的定位与 delta，iceberg 平级，我们对 arctic 定位在更上层，可以与 delta，iceberg 集成
 
-\4.   hudi 的 API 和接口设计对目前的产品集成不友好
+4. hudi 的 API 和接口设计对目前的产品集成不友好
 
 相比阿里实时数仓 hologres，holo 支持 servering 和毫秒级数据延迟，功能上等价于 hbase + kudu，然目前设计 arctic 的 merge on read 只支持分钟级别，但如果我们将消息队列也引入 merge on read，理论上可以实现毫秒级别的实时数仓，跟hologres的实时能力对标，arctic 比 hologres 多的是，可以通过 WAL（消息队列）或增量回放实现上下游的串联，实现实时任务的 workflow，通过串联和产品端创新，我们也可以做到类似 hologres 的 HSAP 效果，如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image016.jpg)
+![1](picture/8.png)
 
 总结来说，arctic 是一个流批一体的存储范式，类似于分库分表是一种分布式数据库的范式一样，arctic 管理了存量表和流表（增量表）以及两者的版本映射关系，并且支持存量表和流表的 merge on read 和动态 compaction，存量表和流表又可以存储在 iceberg，deltalake，hive 等不同选型的数据湖中，arctic 的定位是在数据湖之上，产品之下，支持使用异构数据湖或kv实现实时数仓（用 kv 存储 changedata）
 
@@ -143,7 +143,7 @@ partition key，primary key，sort key 共同构成了 arctic 数据 layout 的�
 
 [[t6\]](#_msocom_6) [[t7\]](#_msocom_7) 需要注意的是，对有 upsert 需求的摄取场景，change table 和 base table 共用一套 key def，也就是说，如果一张表定义一小时为一个分区，那么这张表的 change table 和 base table 都会按小时进行分区，change(delta) table 和 base table 的 layout 如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image018.jpg)
+![1](picture/9.png)
 
 change table 每次提交会记录独立的 manifest 文件，所有的 change manifest 构成 change table 的元数据，下游可以通过 arctic 的 incremental read 接口读取 change manifest 以消费 change table，base table 也有 base manifest，对不同的存储引擎，base manifest 会不同，比如 hive 是用 hive metastore，iceberg 是用 iceberg manifest。最后，我们通过一个自定义的 arctic table metadata 记录了 base table 和 change table 之间的版本关系。
 
@@ -155,9 +155,7 @@ arctic 要求为不同的存储引擎适配主键声明，例如 hive ddl 中有
 
 主键可以作为文件分组的依据，因为不同的主键必然指向不同数据，按主键哈希得到的文件分组，每组文件 merge 可以并发执行，相比传统 MR 效率有极大提升，分组本质是将 shuffle 提前到了 ingestion 过程，[proposal: merge and compaction for arctic](https://docs.qq.com/doc/DR3JNb3RYcW9xQkZW)这篇 proposal 中我论述了文件组可以带来的提升，通过下图可以对 scan 操作做简单量化：
 
-***![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image020.jpg)\***
-
-文件分组依赖主键，过程可以用下面的公式定义：
+![1](picture/10.png)文件分组依赖主键，过程可以用下面的公式定义：
 
 group_id(row) = index(pk)
 
@@ -167,9 +165,9 @@ group_id(row) = index(pk)
 
 arctic 要支持排序键，排序键，主键以及排序遵照下面的规则：
 
-\1.   不设置排序键，group 内文件之间按主键排序，文件内不排序
+1. 不设置排序键，group 内文件之间按主键排序，文件内不排序
 
-\2.   设置排序键，group 内文件之间和文件内都按排序键排序
+2. 设置排序键，group 内文件之间和文件内都按排序键排序
 
 排序键的作用有两个，第一是通过文件之间的排序实现 ingestion，compaction 和 query 的剪枝，第二是通过文件内排序支持谓词下推，如 sort key + parquet，两者共同作用下，为排序键上的查询和连接提供高性能保障。
 
@@ -179,17 +177,15 @@ arctic 要支持排序键，排序键，主键以及排序遵照下面的规则�
 
 hive 对 sort key 的定义方法如所示，与主键一样，hive 的 sort key 没有实际约束，只是为查询优化提供依据，排序约束通过计算引擎生产数据时保障。
 
+```
 CREATE TABLE page_view(viewTime INT, userid BIGINT,
+     page_url STRING, referrer_url STRING,
+     ip STRING COMMENT 'IP Address of the User')
+ COMMENT 'This is the page view table'
+ PARTITIONED BY(dt STRING, country STRING)
+ CLUSTERED BY(userid) SORTED BY(viewTime) INTO 32 BUCKETS
 
-   page_url STRING, referrer_url STRING,
-
-   ip STRING COMMENT 'IP Address of the User')
-
- COMMENT 'This is the page view table'
-
- PARTITIONED BY(dt STRING, country STRING)
-
- CLUSTERED BY(userid) SORTED BY(viewTime) INTO 32 BUCKETS
+```
 
 iceberg 也有 sort key 的 [API PR](https://github.com/apache/iceberg/pull/1373) 和 [实现 PR](https://github.com/apache/iceberg/pull/589)，API 已经合并，实现推进缓慢，iceberg 的 sort key 与 hive 一样由计算引擎来保障排序，不过 iceberg 的 sort key（又叫 sort order）支持动态 evolve，无论 hive 还是 iceberg 的 sort key，定位在上层的 arctic 都可以去兼容。
 
@@ -201,15 +197,15 @@ arctic 的定位是分钟级别延迟以及流批一体的实时数仓，点查�
 
 arctic 中文件索引的作用是将数据按主键打散到不同分组中，每组可并发执行 compaction，按主键的查询，join等，arctic 的文件索引采用两级结构，分别对应 hash 分组和 range 分组，在这里，**我们将 hash 分组的概念衍生为节点，一个哈希分组对应一个 arctic node，下文提到的分组概念，如无特别标注，都是特指哈希分组**。
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image022.jpg)
+![1](picture/11.png)
 
 如上图所示，第一级哈希索引，哈希模 4，产生了 4 个 arctic node，每个 node 内的主键不相交，compaction 可以并发执行，在node 内，每个文件记录最小键和最大键，如果表设置了排序键，则记录排序键，没有则使用主键，我们用 [min_key, max_key) 标记一个文件的 key range，每个 node 内 base file range 不相交，change file 的 range 由摄取决定，可以相交，key range 是 arctic 第二级文件索引。
 
 第一级 hash index 的作用体现在：
 
-\1.   分组节点数等同于 ingestion 和 compaction 的最小并发度，如果没有按主键分组，为了保障相同主键的更改顺序一致，理论上只能有一个并发执行 ingestion 和 compaction
+1. 分组节点数等同于 ingestion 和 compaction 的最小并发度，如果没有按主键分组，为了保障相同主键的更改顺序一致，理论上只能有一个并发执行 ingestion 和 compaction
 
-\2.   主键按哈希分组，与数仓表中的 bucket 作用等同，可以复用 hive 中 cluster by 和 iceberg 中 bucket partition 的概念，对按主键查询，join 带来性能上的收益。
+2. 主键按哈希分组，与数仓表中的 bucket 作用等同，可以复用 hive 中 cluster by 和 iceberg 中 bucket partition 的概念，对按主键查询，join 带来性能上的收益。
 
 第二级 range index 的作用体现在 ingestion，compaction 和 query 按 range 剪枝。
 
@@ -217,35 +213,35 @@ arctic 中文件索引的作用是将数据按主键打散到不同分组中，�
 
 文件索引和自动分裂是 arctic 对比竞品的核心优势。要理解自动分裂，首先要明确 arctic 自动伸缩的目标：：
 
-\1.   在业务初期，体量有限，我们一般会选择较少的分组，以避免 change file 过于碎片化，随着业务体量的上升，在原有的分组下， 每次提交的 change file 会逐渐增大，当超出内存阈值后，由于要引入本地IO，外排等机制，compaction 性能急剧下降，这时候需要我们将分组扩展，扩展后第一可以让 compaction 使用更高并发，第二控制组内每次提交 change file 量在内存阈值内，以障 compaction，merge on read 效率以及数据延迟，在这里，控制分组规模以规避 change file 碎片化，以及提高分组和并发突破性能瓶颈，都是为了更高效的 ingestion，compaction 以及 query。
+1. 在业务初期，体量有限，我们一般会选择较少的分组，以避免 change file 过于碎片化，随着业务体量的上升，在原有的分组下， 每次提交的 change file 会逐渐增大，当超出内存阈值后，由于要引入本地IO，外排等机制，compaction 性能急剧下降，这时候需要我们将分组扩展，扩展后第一可以让 compaction 使用更高并发，第二控制组内每次提交 change file 量在内存阈值内，以障 compaction，merge on read 效率以及数据延迟，在这里，控制分组规模以规避 change file 碎片化，以及提高分组和并发突破性能瓶颈，都是为了更高效的 ingestion，compaction 以及 query。
 
-\2.   在数仓表有 sort key 的情况下，业务期望通过 sort key 可以对 query 执行高效剪枝，随着单个文件的增大，在不引入文件碎片的前提下，有理由期望按 range 将文件分裂成多个文件，实现文件级别更快的剪枝。
+2. 在数仓表有 sort key 的情况下，业务期望通过 sort key 可以对 query 执行高效剪枝，随着单个文件的增大，在不引入文件碎片的前提下，有理由期望按 range 将文件分裂成多个文件，实现文件级别更快的剪枝。
 
-\3.   从文件治理角度讲，期望文件尽量与分布式块边缘对齐，减少文件碎片和元数据压力。
+3. 从文件治理角度讲，期望文件尽量与分布式块边缘对齐，减少文件碎片和元数据压力。
 
 对第一个场景，需要我们在一级索引上按照哈希规则将文件分裂，我们称之为 hash split，第二个场景按照 range 分裂，为 range split，第三个场景可以使用 hash split 或 range split。
 
 range split 方案容易理解：range split 的前提是有 sort key，文件内数据有序，可以直接按序输出原文件一半数据量到单独文件中，即可保障分裂后的文件依然满足 range index 约束。在没有 sort key 的前提下，range split 要引入排序代价，不是一个好选择，range split 的过程如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image024.jpg)
+![1](picture/12.png)
 
 hash split 是将一个 arctic node 中的数据，重新打散到 2 个子节点中，将 index = 0 的节点分裂的过程如下图所示，分裂之后，哈希规则从 mod 4 变为了 mod 8，hash split 遵循一致性哈希的原则，当前节点的分裂不会影响其他节点数据：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image026.jpg)
+![1](picture/13.png)
 
 每个节点的 hash split，可以看做一个二叉树节点的向下派生，我们在初始的哈希分组之上补全父节点，则可以得到一个理论上可以派生到每个叶子节点为一个独立哈希值的二叉树。我们将这个二叉树称之为 arctic tree，每个 arctic node 都是独立分组。在[merge for arctic](https://docs.qq.com/doc/DR3JNb3RYcW9xQkZW) 这篇设计中，我更详细的描述了 arctic tree 的特性和原理。
 
 在 2000 年 berkelay 发表的一篇 [论文](https://people.eecs.berkeley.edu/~culler/papers/dds.pdf) 中，通过位运算的方式对 arctic tree 和 hash split 做出了描述，如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image028.jpg)
+![1](picture/14.png)
 
 按照论文的思路，我们可以用（mask，index）的二元组来标记一行数据所在的哈希分组，或者说 arctic node，其中：index = hash(pk) & mask，在 arctic tree 中，直系亲属节点有相交关系，非直系无相交。
 
 明白了怎样分裂，下面的问题是触发分裂的时机，目前我们主要考虑两点：
 
-\1.   实时摄取过程中，单节点内 change data 量骤增，根据是否有 sort key 触发 range split 或 hash split
+1. 实时摄取过程中，单节点内 change data 量骤增，根据是否有 sort key 触发 range split 或 hash split
 
-\2.   在 compaction plan 时，根据文件组数据量预估输出时是否需要 range split 或 hash split
+2. 在 compaction plan 时，根据文件组数据量预估输出时是否需要 range split 或 hash split
 
 在 ingestion 和 compaction section 中会分别讲到触发分裂的过程。
 
@@ -261,11 +257,11 @@ arctic 的数据分为实时摄取和批量摄取，实时摄取是使用 flink 
 
 但是社区没有小文件合并的功能，这块属于上层建筑的范畴，arctic 会遵照通用的架构模式解决小文件合并问题，小文件合并遵循三个原则：
 
-\1.   异步执行，并通过事务功能执行存量文件 overwrite，保障 ACID
+1. 异步执行，并通过事务功能执行存量文件 overwrite，保障 ACID
 
-\2.   主动触发，compaction service 提供 http 接口，可以由 rea-time ingestion 的 commit 算子主动触发合并，主动触发意味着更强的实时性，更及时的 metrics。
+2. 主动触发，compaction service 提供 http 接口，可以由 rea-time ingestion 的 commit 算子主动触发合并，主动触发意味着更强的实时性，更及时的 metrics。
 
-\3.   被动触发，compaction service 监控表体量变化，需要的时候被动触发小文件合并
+3. 被动触发，compaction service 监控表体量变化，需要的时候被动触发小文件合并
 
 ### real-time ingestion
 
@@ -277,13 +273,13 @@ arctic 的数据分为实时摄取和批量摄取，实时摄取是使用 flink 
 
 假设我们现在有表，在 arctic tree 上的分布如下图所示（虚线部分表示没数据）：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image030.jpg)
+![1](picture/15.png)
 
 在 ingestion plan 时，为了确保数据一致，除了每个 subtask 摄取的 node 不能构成直系亲属关系，还必须要求所有 subtask node 累加起来，通过向上或向下回溯可以覆盖树中的完整一层，以保障没有 node 的数据被遗漏。
 
 如上中的 layout，假设我们用 4 个并发的 flink 任务执行摄取，首先可以直观地想到将 4 个 subtask 映射到第三层的 4 个节点 00，10，01，11 上，这四个节点是同层的兄弟节点，且累加在一起覆盖了 arctic tree 中的第三层，没有数据遗漏。flink 摄取过程如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image032.jpg)
+![1](picture/16.png)
 
 需要说明的是，在 arctic 的 writer 算子选择一个 node 执行 ingestion，不仅负责这个节点内的数据摄取，还要负责这个节点下所有子节点的摄取任务，所以严格来说，每个 subtask 执行的是一个或多个节点的 subtree ingestion。
 
@@ -303,21 +299,21 @@ batch ingestion 是使用批计算的方式生成或覆盖表中的 base data，
 
 具体来说，我们需要分别实现 spark arctic writer，hive arctic sink，presto arctic sink 以及 impala sink，在这些算子中，通过 shuffle 将数据按照主键打散到相应 arctic node 中，并记录元数据。如下图所示：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image034.jpg)
+![1](picture/17.png)
 
 与 real-time ingestion 类似，batch ingestion plan 也需要考虑节点和 subtask 之间的分配问题，在这里我们可以粗暴地将 batch subtask 映射到 arctic tree 中的一层上，再通过一些 metrics 决定每个 subtask 是否向子节点细分。
 
 batch ingestion 另外需要考虑两个问题：
 
-\1.   与 compaction 的写冲突问题，因为 compaction 是由 arctic 治理服务异步调度的任务，可能出现 batch ingestion 和 compaction 同时在执行的情况，我们要求 ingestion 的优先级高于 compaction，在 ingestion 过程中，compaction 写入数据无效，要做到这一点可以使用乐观并发控制，在 compaction 写入的数据提交时检查在 compaction 开始后是否有 batch ingestion 执行，有的话放弃提交，这里涉及的另一个问题是由 batch ingestion 加的宏观表锁何时释放，尤其在 batch ingestion 无疾而终的时候。
+1. 与 compaction 的写冲突问题，因为 compaction 是由 arctic 治理服务异步调度的任务，可能出现 batch ingestion 和 compaction 同时在执行的情况，我们要求 ingestion 的优先级高于 compaction，在 ingestion 过程中，compaction 写入数据无效，要做到这一点可以使用乐观并发控制，在 compaction 写入的数据提交时检查在 compaction 开始后是否有 batch ingestion 执行，有的话放弃提交，这里涉及的另一个问题是由 batch ingestion 加的宏观表锁何时释放，尤其在 batch ingestion 无疾而终的时候。
 
-\2.   batch ingestion 必须制定对应的 change data 版本，在 batch ingestion 完成后，系统需要知道当前的 base table 后续跟哪些 change data 合并，因此需要为其标记 change 版本，这个版本对应数据的时间信息，原则上允许回调，compaction 会保证幂等。
+2. batch ingestion 必须制定对应的 change data 版本，在 batch ingestion 完成后，系统需要知道当前的 base table 后续跟哪些 change data 合并，因此需要为其标记 change 版本，这个版本对应数据的时间信息，原则上允许回调，compaction 会保证幂等。
 
 ### upsert on keys
 
 考虑实时摄取下的一种场景：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image036.jpg)
+![1](picture/18.png)
 
 我们将一行数据的主键从 0111 更新到 1111，因为 011 和 111 存储在两个不同文件中，需要先删除 0111，再插入 1111，而 0111 和 1111 的 ingestion 由两个 subtask 分别执行，这种情况下，为了保障数据一致性，需要由 subtask 1 执行 0111 的删除，由 subtask 2 执行 1111 的插入，否则与后续同主键的操作可能发生顺序冲突。
 
@@ -331,11 +327,11 @@ batch ingestion 另外需要考虑两个问题：
 
 compaction 目前为止有三项作用：
 
-\1.   小文件合并，尤其是实时摄取产生的小文件
+1. 小文件合并，尤其是实时摄取产生的小文件
 
-\2.   upsert 合并，以分钟级别的周期调度 compaction，以实现 base table 分钟级延迟
+2. upsert 合并，以分钟级别的周期调度 compaction，以实现 base table 分钟级延迟
 
-\3.   执行 compaction 过后，更新表的 metrics 信息，用于后续的治理服务
+3. 执行 compaction 过后，更新表的 metrics 信息，用于后续的治理服务
 
 其中，小文件治理是 compaction 最核心目标，对分钟级数据延迟，compaction 并不是唯一路径，通过 merge on read 也可以实现，但是 merge on read 无法解决小文件问题，小文件积压后最终会让 merge on read 性能剧烈降低。
 
@@ -347,23 +343,23 @@ major compaction 目标是将特定版本的 change data 合并到 base file 中
 
 major compaction 的高效性得益于两点：
 
-\1.   数据按照主键 shuffle 到不同 arctic node 中，没有直系亲属关系的 arctic node 内的 major compaction 可以并发执行，相比传统的 MR 任务，省去了 shuffle 开销
+1. 数据按照主键 shuffle 到不同 arctic node 中，没有直系亲属关系的 arctic node 内的 major compaction 可以并发执行，相比传统的 MR 任务，省去了 shuffle 开销
 
-\2.   base file 之间按 primary key 或 sort key 排序，可以提供高效剪枝，尤其对有时间字段作为排序键的场景
+2. base file 之间按 primary key 或 sort key 排序，可以提供高效剪枝，尤其对有时间字段作为排序键的场景
 
 相比 delta，iceberg 这类面向条件的 upsert 功能，arctic 通过文件索引将 change data 和 base data 关联在一起，减少了可观的 delta data scan 和数据广播的开销，以 delta 为例，在提供按某个条件更新的功能时，delta 可以将更新条件广播到每个 subtask 中，但是对数据摄取场景，则需要将每行数据变更进行广播，而 arctic 通过文件索引，让存量数据只需要与关联索引上的增量数据合并，实现更高效的 upsert
 
 major compaction 的第一步是 compaction plan，核心流程为：
 
-\1.   根据代价模型，确定 compaction 输出节点，与 ingestion 的映射节点相似，compaction 输出节点要求不相交，通过上下追溯可以映射到一层上的所有节点，保证无数据遗漏
+1. 根据代价模型，确定 compaction 输出节点，与 ingestion 的映射节点相似，compaction 输出节点要求不相交，通过上下追溯可以映射到一层上的所有节点，保证无数据遗漏
 
-\2.   在输出节点上，根据相交关系确定文件组，一个文件组内的文件数据上具有相交性，需要在一个 subtask 中执行，假设我们获取到了 m 个文件组
+2. 在输出节点上，根据相交关系确定文件组，一个文件组内的文件数据上具有相交性，需要在一个 subtask 中执行，假设我们获取到了 m 个文件组
 
-\3.   评估 m 个文件组的 major compaction 开销，在业务要求的时延，和资源允许的范畴内，指定 compaction 的并发度为 n，将 m 个文件组按照代价模型打散到 n 个 subtask 中
+3. 评估 m 个文件组的 major compaction 开销，在业务要求的时延，和资源允许的范畴内，指定 compaction 的并发度为 n，将 m 个文件组按照代价模型打散到 n 个 subtask 中
 
 假设通过 compaction plan，我们通过相交性得到下面一个文件组：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image038.jpg)
+![1](picture/19.png)
 
 根据有没有 sort key，会有 sort merge 和 hash merge 两种 merge 方案。
 
@@ -371,11 +367,11 @@ major compaction 的第一步是 compaction plan，核心流程为：
 
 在有 sort key 的前提下，base file 之间以及 file 内都已按 sort key 排序，那么 sort merge 的过程就变得清晰：
 
-\1.   subtask 将文件组内所有 change data 读到本地并去重（内存放不下，则要置换本地盘）
+1. subtask 将文件组内所有 change data 读到本地并去重（内存放不下，则要置换本地盘）
 
-\2.   因为 change data 遵循的是先来后到，这里要先将 change data 按 sort key 排序
+2. 因为 change data 遵循的是先来后到，这里要先将 change data 按 sort key 排序
 
-\3.   按 sort key 顺序流式读取 base file，与排序后的 change data 做二路归并排序输出，当输出文件大小超过一定阈值后，切分新文件，从而在实现 range split
+3. 按 sort key 顺序流式读取 base file，与排序后的 change data 做二路归并排序输出，当输出文件大小超过一定阈值后，切分新文件，从而在实现 range split
 
 需要注意的是，sort key 和主键可能不重合，不能通过排序做去重，这里建议用哈希去重。
 
@@ -387,23 +383,23 @@ sort merge 适用于有 sort key 的场景，不可控的代价主要在 change 
 
 在没有 sort key 的约束下，hash merge 的规则更为直接：在本地建立 change data map，与 base data 按 key 合并，但这里要考虑两个问题：
 
-\1.   要保障输出的文件按主键范围排序
+1. 要保障输出的文件按主键范围排序
 
-\2.   对 change data 中新插入的数据，要有反遍历的过程
+2. 对 change data 中新插入的数据，要有反遍历的过程
 
 为了满足以上两个条件，我们将 change data 按主键分段去重和排序：
 
-![img](file:////Users/jiayangwei/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image040.jpg)
+![1](picture/20.png)
 
 如上图所示，对 change file 和 base file 的每个 min_pk 和 max_pk，我们记为一个 segement 的边界，这些点将文件组内的数据分成了多个 segement，为了保障文件之间的有序性，我们无需对每行数据排序，只需要保障 segement 有序输出即可，这样可以提供比 sort merge 更高的性能。这样 hash merge 的流程为：
 
-\1.   根据文件组内所有文件的 min_pk 和 max_pk 初始化 segement
+1. 根据文件组内所有文件的 min_pk 和 max_pk 初始化 segement
 
-\2.   subtask 将文件组内所有 change data 读到各个 segement 中并去重
+2. subtask 将文件组内所有 change data 读到各个 segement 中并去重
 
-\3.   按主键顺序流式读取 base file，在相应的 change segement 中寻找 upsert 或 delete 数据覆盖并输出，输出后的 change data 立即从 change segement 删除，在一个 base file 完成输出后，再将相应 change segement 中的遗留数据输出
+3. 按主键顺序流式读取 base file，在相应的 change segement 中寻找 upsert 或 delete 数据覆盖并输出，输出后的 change data 立即从 change segement 删除，在一个 base file 完成输出后，再将相应 change segement 中的遗留数据输出
 
-\4.   根据 base file 和 change segement 数据量预估，输出的文件是否需要做 hash split，例如一个 segement 内的 base file 加 change file 的数据量超过一定阈值，考虑在输出的时候直接向子节点输出。
+4. 根据 base file 和 change segement 数据量预估，输出的文件是否需要做 hash split，例如一个 segement 内的 base file 加 change file 的数据量超过一定阈值，考虑在输出的时候直接向子节点输出。
 
 hash merge 不会做每行数据的排序，因此不适用于有 sork key 的表，但是能提供更高性能的 merge，假设 change data 量为 n，base data 量为 m，通过自动分裂我们可以控制文件组内的文件数量为近常量，则 hash merge 算法复杂度是 O(m + n)，
 
